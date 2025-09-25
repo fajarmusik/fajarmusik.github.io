@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Dasar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .calculator-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .calculator-button {
+            @apply p-6 rounded-2xl text-2xl font-semibold transition-all duration-200 ease-in-out transform hover:scale-105;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-sm">
+        <input id="display" type="text" readonly class="w-full text-right text-4xl font-light bg-gray-100 rounded-xl p-4 mb-4 overflow-x-auto whitespace-nowrap focus:outline-none">
+
+        <div class="grid calculator-grid gap-3">
+            <!-- Tombol Kontrol -->
+            <button class="calculator-button bg-red-200 text-red-800" onclick="clearDisplay()">AC</button>
+            <button class="calculator-button bg-red-200 text-red-800" onclick="backspace()">DEL</button>
+            <button class="calculator-button bg-gray-300 text-gray-800" onclick="handleInput('/')">÷</button>
+            <button class="calculator-button bg-gray-300 text-gray-800" onclick="handleInput('*')">×</button>
+
+            <!-- Tombol Angka dan Operasi -->
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('7')">7</button>
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('8')">8</button>
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('9')">9</button>
+            <button class="calculator-button bg-gray-300 text-gray-800" onclick="handleInput('-')">-</button>
+
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('4')">4</button>
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('5')">5</button>
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('6')">6</button>
+            <button class="calculator-button bg-gray-300 text-gray-800" onclick="handleInput('+')">+</button>
+
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('1')">1</button>
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('2')">2</button>
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('3')">3</button>
+            <button class="calculator-button bg-purple-500 text-white col-span-1 row-span-2" style="grid-row: 4 / span 2; grid-column: 4 / span 1;" onclick="calculate()">=</button>
+
+            <button class="calculator-button bg-gray-100 text-gray-800 col-span-2" onclick="handleInput('0')">0</button>
+            <button class="calculator-button bg-gray-100 text-gray-800" onclick="handleInput('.')">.</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+
+        function handleInput(value) {
+            display.value += value;
+        }
+
+        function clearDisplay() {
+            display.value = '';
+        }
+
+        function backspace() {
+            display.value = display.value.slice(0, -1);
+        }
+
+        function calculate() {
+            let expression = display.value;
+            // Mengganti simbol yang ramah pengguna ke format JavaScript yang valid
+            expression = expression.replace(/×/g, '*');
+            expression = expression.replace(/÷/g, '/');
+
+            try {
+                // Gunakan eval() untuk evaluasi ekspresi matematis.
+                // Sangat penting untuk berhati-hati dengan eval() di aplikasi produksi
+                // karena risiko keamanan.
+                let result = eval(expression);
+                display.value = result;
+            } catch (e) {
+                display.value = 'Error';
+            }
+        }
+    </script>
+</body>
+</html>
