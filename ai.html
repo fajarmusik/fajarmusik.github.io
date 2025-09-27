@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Web Chat (Cloudflare)</title>
+    <style>
+        /* Gaya dasar ala Telegram */
+        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-container { width: 400px; height: 600px; background-color: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); display: flex; flex-direction: column; }
+        .chat-header { background-color: #0088cc; color: white; padding: 15px; border-radius: 8px 8px 0 0; font-weight: bold; }
+        .chat-messages { flex-grow: 1; padding: 10px; overflow-y: auto; background-color: #e5ddd5; }
+        .chat-input { display: flex; padding: 10px; border-top: 1px solid #eee; }
+        .chat-input input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; margin-right: 8px; }
+        .chat-input button { background-color: #0088cc; color: white; border: none; padding: 10px 15px; border-radius: 20px; cursor: pointer; }
+        
+        .message { margin-bottom: 10px; max-width: 70%; padding: 8px 12px; border-radius: 15px; }
+        .user-message { background-color: #dcf8c6; margin-left: auto; text-align: right; }
+        .ai-message { background-color: #ffffff; margin-right: auto; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">Asisten AI Chatbot</div>
+        <div class="chat-messages" id="messages">
+            </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Ketik pesan..." required>
+            <button onclick="sendMessage()">Kirim</button>
+        </div>
+    </div>
+
+    <script>
+        // GANTI URL INI dengan URL Cloudflare Worker Anda setelah di-deploy
+        const WORKER_URL = 'https://ai.botreaksi.workers.dev'; 
+        const messagesDiv = document.getElementById('messages');
+        const userInput = document.getElementById('userInput');
+
+        // Fungsi untuk menambahkan pesan ke UI
+        function addMessage(text, sender) {
+            const msg = document.createElement('div');
+            msg.className = `message ${sender}-message`;
+            msg.textContent = text;
+            messagesDiv.appendChild(msg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll ke bawah
+        }
+
+        // Tangani tombol enter
+        userInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            // 1. Tambahkan pesan pengguna ke UI
+            addMessage(message, 'user');
+            userInput.value = ''; // Kosongkan input
+            
+            // Tambahkan indikator mengetik AI
+            const thinkingMsg = document.createElement('div');
+            thinkingMsg.id = 'ai-thinking';
+            thinkingMsg.className = 'message ai-message';
+            thinkingMsg.textContent = 'AI sedang mengetik...';
+            messagesDiv.appendChild(thinkingMsg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                // 2. Kirim pesan ke Cloudflare Worker
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+
+                // Hapus indikator mengetik
+                document.getElementById('ai-thinking').remove();
+
+                if (response.ok && data.status === 'success') {
+                    // 3. Tambahkan balasan AI ke UI
+                    addMessage(data.reply, 'ai');
+                } else {
+                    addMessage('Error: Gagal mendapatkan balasan dari AI. ' + (data.message || 'Unknown error'), 'ai');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById('ai-thinking').remove();
+                addMessage('Error: Koneksi ke Worker gagal.', 'ai');
+            }
+        }
+
+        // Pesan selamat datang inisial
+        addMessage('Halo! Saya adalah Asisten AI Anda. Tanyakan apa saja! 😊', 'ai');
+    </script>
+</body>
+</html>
